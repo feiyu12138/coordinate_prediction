@@ -13,5 +13,5 @@ python predict.py \
     --output_dir $OUTPUT_DIR \
     --n_locations 2 \
     --backbone $BACKBONE \
-    --resume_path $CKPT
+    --resume_path $CKPT 
     

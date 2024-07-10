@@ -12,6 +12,7 @@ import os
 import wandb
 from torch.optim.lr_scheduler import StepLR
 import matplotlib.pyplot as plt
+import json
 
 str2list = lambda x: list(map(int, x.split(',')))
 
@@ -25,12 +26,9 @@ def predict_datasets(predictor, dataloader, device):
         for coord,image_path in zip(coords, image_paths):
             all_coords.append({
                 'image_path': image_path,
-                'coords': coord
+                'coords': coord.cpu().detach().numpy().tolist()
             })
-    return coords
-
-def draw_curve(coords, image_path):
-    pass
+    return all_coords
 
 def load_model_with_optimizer(model, optimizer, path, device):
     checkpoint = torch.load(path, map_location=device)
@@ -57,12 +55,13 @@ def main():
     parser.add_argument('--device', type=str, default='cuda')
     parser.add_argument('--resume_path', type=str, default='ckpt/model_final.pth')
     parser.add_argument('--output_dir', type=str, default='ckpt')
+    parser.add_argument('--plot', action='store_true')
     args = parser.parse_args()
     
     device = torch.device(args.device if torch.cuda.is_available() else 'cpu')
     model = CoordRegressionNetwork(args.n_locations, args.image_size, args.backbone).to(device)
     norm = Normalizer(device=device, image_size=IMAGE_SIZE)
-    plotter = Plotter(args.output_dir, args.root)
+    plotter = Plotter(args.output_dir, args.root) if args.plot else None
     model,optimizer = load_model_with_optimizer(model, None, args.resume_path, device)
     predictor = Predictor(model, norm, plotter) 
     
@@ -71,7 +70,8 @@ def main():
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers)
     
     coords = predict_datasets(predictor, dataloader, device)
-    
+    with open(os.path.join(args.output_dir, 'coords.json'), 'w') as f:
+        json.dump(coords, f,indent=4)
 
 if __name__ == '__main__':
     main()
