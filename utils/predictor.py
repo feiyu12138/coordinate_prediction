@@ -34,7 +34,7 @@ class Plotter:
             first_image = plt.imread(sorted_list[0]['image_path'])
             trajectory = np.array([point["coords"] for point in sorted_list])
             plt.imshow(first_image)
-            plt.plot(trajectory[:,:,0], trajectory[:,:,1], 'r-')
+            plt.plot(trajectory[:,:,0], trajectory[:,:,1], 'r')
             if save_path:
                 save_p = f'{save_path}/{phase}.png'
                 plt.savefig(save_p)
