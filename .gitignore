@@ -2,3 +2,5 @@ wandb
 ./*.png
 
 *.pth
+
+trajectory
