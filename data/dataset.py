@@ -32,7 +32,29 @@ class CustomDataset(Dataset):
         left_centroid = target['left_centroid']
         right_centroid = target['right_centroid']
         target = torch.Tensor(left_centroid + right_centroid)
-        return img, target
+        return img, target, img_path
+
+class SimpleDataset(Dataset):
+    def __init__(self, args, data_list):
+        self.data_list = data_list
+        self.transform = transforms.Compose([
+            transforms.Resize((args.image_size,args.image_size)),
+            transforms.ToTensor()
+        ])
+        self.image_size = args.image_size
+
+    def __len__(self):
+        return len(self.data_list)
+
+    def __getitem__(self, idx):
+        img_path = self.data_list[idx]['image_path']
+        img = Image.open(img_path)
+        img = self.transform(img)
+        target = self.data_list[idx]['target']
+        left_centroid = target['left_centroid']
+        right_centroid = target['right_centroid']
+        target = torch.Tensor(left_centroid + right_centroid)
+        return img, target, img_path
 
 def read_img_with_annotations(root_img,root_ann):
     data_list = []
@@ -75,6 +97,11 @@ def create_dataset(args,train_ratio=0.8):
     train_set = CustomDataset(args,train_list)
     val_set = CustomDataset(args,val_list)
     return train_set, val_set
+
+def create_simple_dataset(args):
+    data_list = read_img_with_annotations_ready(args.root)
+    dataset = SimpleDataset(args,data_list)
+    return dataset
 
 str2list = lambda x: list(map(int, x.split(',')))        
 if __name__ == '__main__':

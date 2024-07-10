@@ -10,13 +10,14 @@ from tqdm import tqdm
 import os
 import wandb
 from torch.optim.lr_scheduler import StepLR
+import matplotlib.pyplot as plt
 
 str2list = lambda x: list(map(int, x.split(',')))
 
 def train_epoch(model, optimizer, train_loader, norm, device):
     total_loss = 0
     model.train()
-    for images, targets in tqdm(train_loader):
+    for images, targets,_ in tqdm(train_loader):
         images, targets = images.to(device), targets.to(device)
         targets = norm.normalize(targets)
         optimizer.zero_grad()
@@ -30,10 +31,34 @@ def train_epoch(model, optimizer, train_loader, norm, device):
         optimizer.step()
     return total_loss / len(train_loader)
 
+def log_coords(image_paths, coords, norm):
+    coords = norm.denormalize(coords)
+    coords = coords.cpu().detach().numpy()
+    image = plt.imread(image_paths[0])
+    plt.figure(figsize=(8, 8))
+    plt.imshow(image)
+    plt.scatter(coords[0,:, 0], coords[0,:, 1], c='r', s=10)
+    plt.axis('off')
+    plt.savefig('image_with_coords.png')
+    # wandb.log({"image_with_coords": wandb.Image('image_with_coords.png')})
+    plt.close()
+    
+def viz_coords(model, val_loader, norm, device):
+    model.eval()
+    for images, targets, image_paths in tqdm(val_loader):
+        from ipdb import set_trace; set_trace()
+        images, targets = images.to(device), targets.to(device)
+        targets = targets.cpu().detach().numpy()
+        with torch.no_grad():
+            # targets = norm.normalize(targets)
+            coords, heatmaps = model(images)
+            log_coords(image_paths, coords, norm)               
+            break
+
 def eval_epoch(model, val_loader, norm, device):
     model.eval()
     total_loss = 0
-    for images, targets in tqdm(val_loader):
+    for images, targets, image_paths in tqdm(val_loader):
         images, targets = images.to(device), targets.to(device)
         with torch.no_grad():
             targets = norm.normalize(targets)
@@ -87,6 +112,7 @@ def main():
     parser.add_argument('--device', type=str, default='cuda')
     parser.add_argument('--do_train', action='store_true')
     parser.add_argument('--do_eval', action='store_true')
+    parser.add_argument('--viz_eval', action='store_true')
     parser.add_argument('--eval_interval', type=int, default=1)
     parser.add_argument('--resume', action='store_true')
     parser.add_argument('--resume_path', type=str, default='ckpt/model_final.pth')
@@ -123,10 +149,12 @@ def main():
             eval_loss = eval_epoch(model, val_loader, norm, device)
             print(f'eval loss: {eval_loss}')
             wandb.log({"eval_loss": eval_loss, "epoch": epoch})
+            if args.viz_eval:
+                viz_coords(model, val_loader, norm, device)
         losses.append({
             'epoch': epoch,
-            'train_loss': train_loss,
-            'eval_loss': eval_loss
+            'train_loss': train_loss if args.do_train else 0,
+            'eval_loss': eval_loss if args.do_eval else 0
         }) 
         scheduler.step()
     plot_losses(losses)

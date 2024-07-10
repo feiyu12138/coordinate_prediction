@@ -7,11 +7,15 @@ python utils.py --root_img /path/to/images/dir ----root_ann /path/to/annotatatio
 ```
 
 ## train model
+![Train Loss](pictures/losses.png)
 1. set variables in scripts
+2. 
 ```bash
 bash train.sh
 ```
 
 ## visualization
-
-TODO: wandb setting
+![Visualization](pictures/image_with_coords.png)
+```bash
+bash predict.sh
+```
