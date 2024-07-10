@@ -3,7 +3,7 @@ import argparse
 import dsntnn
 from torch import optim
 from model.model import CoordRegressionNetwork
-from model.predictor import Predictor,Plotter
+from utils.predictor import Predictor,Plotter
 from data.dataset import create_simple_dataset
 from data.normalizer import Normalizer
 from data.constant import IMAGE_SIZE
