@@ -5,9 +5,10 @@ from data.constant import PHASES
 from tqdm import tqdm
 
 class VideoGenerator:
-    def __init__(self, image_paths):
+    def __init__(self, image_paths,downsample_factor=None):
         self.image_paths = image_paths
         self.video_length = 1000
+        self.downsample_factor = downsample_factor
         
     def generate_video(self, output_path):
         # Sort the image paths
@@ -15,7 +16,7 @@ class VideoGenerator:
         for phase in PHASES:
             sorted_paths.extend(sorted([path for path in self.image_paths if phase in path]))
         
-        downsample_factor = len(sorted_paths) // self.video_length
+        downsample_factor = len(sorted_paths) // self.video_length if self.downsample_factor is None else self.downsample_factor
         sorted_paths = sorted_paths[::downsample_factor]
         
         # Get the dimensions of the first image

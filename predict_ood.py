@@ -4,7 +4,7 @@ import dsntnn
 from torch import optim
 from model.model import CoordRegressionNetwork
 from utils.predictor import Predictor,Plotter
-from data.dataset import create_simple_dataset
+from data.dataset import create_infer_dataset
 from data.normalizer import Normalizer
 from data.constant import IMAGE_SIZE
 from tqdm import tqdm
@@ -19,8 +19,8 @@ str2list = lambda x: list(map(int, x.split(',')))
     
 def predict_datasets(predictor, dataloader, device):
     all_coords = []
-    for images, targets, image_paths in tqdm(dataloader):
-        images, targets = images.to(device), targets.to(device)
+    for images, image_paths in tqdm(dataloader):
+        images = images.to(device)
         with torch.no_grad():
             coords = predictor(images, image_paths)
         for coord,image_path in zip(coords, image_paths):
@@ -67,7 +67,8 @@ def main():
     predictor = Predictor(model, norm, plotter) 
     
     losses = []
-    dataset = create_simple_dataset(args)
+    content = "/media/luoxin/docs/24summer/chole_data/06282024_tissue_4.txt"
+    dataset = create_infer_dataset(args,content)
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers)
     
     coords = predict_datasets(predictor, dataloader, device)

@@ -55,6 +55,24 @@ class SimpleDataset(Dataset):
         right_centroid = target['right_centroid']
         target = torch.Tensor(left_centroid + right_centroid)
         return img, target, img_path
+    
+class inferDataset(Dataset):
+    def __init__(self, args, data_list):
+        self.data_list = data_list
+        self.transform = transforms.Compose([
+            transforms.Resize((args.image_size,args.image_size)),
+            transforms.ToTensor()
+        ])
+        self.image_size = args.image_size
+
+    def __len__(self):
+        return len(self.data_list)
+
+    def __getitem__(self, idx):
+        img_path = self.data_list[idx]
+        img = Image.open(img_path)
+        img = self.transform(img)
+        return img, img_path
 
 def read_img_with_annotations(root_img,root_ann):
     data_list = []
@@ -90,6 +108,11 @@ def read_img_with_annotations_ready(root):
         data_list = json.load(f)
     return data_list
 
+def read_imgs(path):
+    with open(path, 'r') as f:
+        data_list = json.load(f)
+    return data_list
+
 def create_dataset(args,train_ratio=0.8):
     data_list = read_img_with_annotations_ready(args.root)
     train_list = data_list[:int(len(data_list)*train_ratio)]
@@ -101,6 +124,11 @@ def create_dataset(args,train_ratio=0.8):
 def create_simple_dataset(args):
     data_list = read_img_with_annotations_ready(args.root)
     dataset = SimpleDataset(args,data_list)
+    return dataset
+
+def create_infer_dataset(args,path):
+    data_list = read_imgs(path)
+    dataset = inferDataset(args,data_list)
     return dataset
 
 str2list = lambda x: list(map(int, x.split(',')))        
