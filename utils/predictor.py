@@ -25,6 +25,25 @@ class Plotter:
             os.makedirs(os.path.dirname(save_path), exist_ok=True)
             plt.savefig(save_path)
             plt.close()
+        
+    def set_points_cache(self, points):
+        self.points_cache = points
+        
+    def plot_trajectory_segment(self, save_path=None):
+        sorted_list = []
+        sorted_list = [point for point in self.points_cache if 'left' in point['image_path']]
+        first_image = plt.imread(sorted_list[0]['image_path'])
+        trajectory = np.array([point["coords"] for point in sorted_list])
+        plt.imshow(first_image)
+        plt.scatter(trajectory[:,:,0], trajectory[:,:,1],c='r')
+        if save_path:
+            save_name = sorted_list[0]['image_path'].split('/')[self.prefix_len-1:-2]
+            save_name = '/'.join(save_name)
+            save_p = f'{save_path}/{save_name}.png'
+            os.makedirs(os.path.dirname(save_p), exist_ok=True)
+            plt.savefig(save_p)
+        plt.close()
+        return trajectory, first_image
             
     def plot_trajectory(self, save_path=None):
         for phase in PHASES:
