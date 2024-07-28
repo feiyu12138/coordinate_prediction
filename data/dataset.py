@@ -3,7 +3,7 @@ from torch.utils.data import Dataset
 import json
 from PIL import Image
 from torchvision.transforms import transforms
-from data.constant import PHASES
+from data.constant import PHASE2
 import os
 import json
 from tqdm import tqdm
@@ -20,6 +20,7 @@ class CustomDataset(Dataset):
             transforms.ToTensor()
         ])
         self.image_size = args.image_size
+        self.error_list = []
 
     def __len__(self):
         return len(self.data_list)
@@ -29,8 +30,19 @@ class CustomDataset(Dataset):
         img = Image.open(img_path)
         img = self.transform(img)
         target = self.data_list[idx]['target']
-        left_centroid = target['left_centroid']
-        right_centroid = target['right_centroid']
+        try:
+            left_centroid = target['left_centroid']
+            right_centroid = target['right_centroid']
+        except:
+            self.error_list.append(img_path)
+            tqdm.write(f"Error in {img_path}, replacing with idx 0, detect error number: {len(self.error_list)}")
+            idx = 0
+            img_path = self.data_list[idx]['image_path']
+            img = Image.open(img_path)
+            img = self.transform(img)
+            target = self.data_list[idx]['target']
+            left_centroid = target['left_centroid']
+            right_centroid = target['right_centroid']
         target = torch.Tensor(left_centroid + right_centroid)
         return img, target, img_path
 
@@ -42,6 +54,7 @@ class SimpleDataset(Dataset):
             transforms.ToTensor()
         ])
         self.image_size = args.image_size
+        self.error_list = []
 
     def __len__(self):
         return len(self.data_list)
@@ -51,8 +64,19 @@ class SimpleDataset(Dataset):
         img = Image.open(img_path)
         img = self.transform(img)
         target = self.data_list[idx]['target']
-        left_centroid = target['left_centroid']
-        right_centroid = target['right_centroid']
+        try:
+            left_centroid = target['left_centroid']
+            right_centroid = target['right_centroid']
+        except:
+            self.error_list.append(img_path)
+            tqdm.write(f"Error in {img_path}, replacing with idx 0, detect error number: {len(self.error_list)}")
+            idx = 0
+            img_path = self.data_list[idx]['image_path']
+            img = Image.open(img_path)
+            img = self.transform(img)
+            target = self.data_list[idx]['target']
+            left_centroid = target['left_centroid']
+            right_centroid = target['right_centroid']
         target = torch.Tensor(left_centroid + right_centroid)
         return img, target, img_path
     
@@ -76,7 +100,7 @@ class inferDataset(Dataset):
 
 def read_img_with_annotations(root_img,root_ann):
     data_list = []
-    for phase in tqdm(PHASES):
+    for phase in tqdm(PHASE2):
         cur_ann_dir = os.path.join(root_ann, phase)
         cur_img_dir = os.path.join(root_img, phase)
         annotation_dir = os.path.join(cur_ann_dir, "ann")
@@ -135,11 +159,11 @@ str2list = lambda x: list(map(int, x.split(',')))
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser(description='Train the model')
-    parser.add_argument('--root_img', type=str, default='/ccvl/net/ccvl15/luoxin/coord/0709')
+    parser.add_argument('--root_img', type=str, default='/ccvl/net/ccvl15/luoxin/coord/0728')
     parser.add_argument('--batch_size', type=int, default=32)
     parser.add_argument('--image_size', type=int, default=512)
     parser.add_argument('--n_locations', type=int, default=2)
-    parser.add_argument('--root_ann', type=str, default='/ccvl/net/ccvl15/luoxin/coord/0709/ann')
+    parser.add_argument('--root_ann', type=str, default='/ccvl/net/ccvl15/luoxin/coord/0728')
     args = parser.parse_args()
     # train_set, val_set = create_dataset(args)
     data_list = read_img_with_annotations(args.root_img,args.root_ann)

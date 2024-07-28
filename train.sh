@@ -4,12 +4,12 @@ export WANDB_API_KEY='46e587ae4112a04da96b68ba807395204be787c9'
 export WANDB_PROJECT='coord'
 export WANDB_ENTITY='mid_level'
 
-ROOT=/ccvl/net/ccvl15/luoxin/coord/0709
+ROOT=/ccvl/net/ccvl15/luoxin/coord/0728
 EPOCH=10
 LR=2.5e-4
 BATCH_SIZE=32
 NUM_WORKERS=32
-SAVE_DIR=$ROOT/ckpt
+SAVE_DIR=$ROOT/ckpt   
 BACKBONE=resnet
 EVAL_INTERVAL=1
 

@@ -24,8 +24,15 @@ def predict_datasets(predictor, dataloader, device):
         with torch.no_grad():
             coords = predictor(images, image_paths)
         for coord,image_path in zip(coords, image_paths):
+            is_left = image_path.split('/')[-1].split('_')[1].startswith('left')
+            if not is_left:
+                continue
+            instruction = image_path.split('/')[-3]
+            frame_id = image_path.split('/')[-1][5:11]
             all_coords.append({
                 'image_path': image_path,
+                'instruction': instruction,
+                "frame_id": frame_id,
                 'coords': coord.cpu().detach().numpy().tolist()
             })
     return all_coords

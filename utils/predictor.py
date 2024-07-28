@@ -52,12 +52,12 @@ class Plotter:
             sorted_list = [point for point in sorted_list if 'left' in point['image_path']]
             first_image = plt.imread(sorted_list[0]['image_path'])
             trajectory = np.array([point["coords"] for point in sorted_list])
-            plt.imshow(first_image)
-            plt.scatter(trajectory[:,:,0], trajectory[:,:,1],c='r')
             if save_path:
+                plt.imshow(first_image)
+                plt.scatter(trajectory[:,:,0], trajectory[:,:,1],c='r')
                 save_p = f'{save_path}/{phase}.png'
                 plt.savefig(save_p)
-            plt.close()
+                plt.close()
         return trajectory, first_image
         
 class Predictor:
